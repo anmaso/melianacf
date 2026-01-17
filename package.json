@@ -1,0 +1,19 @@
+{
+  "name": "meliana-cf-app",
+  "version": "1.0.0",
+  "description": "Aplicación web para ver datos del Meliana Club de Fútbol",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["futbol", "meliana", "ffcv"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5"
+  }
+}

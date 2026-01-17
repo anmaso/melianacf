@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meliana CF - Aleví 2n Any</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Meliana Club de Fútbol</h1>
+            <p class="subtitle">Segona FFCV Aleví 2n. any València - Lliga Regular Grup 2</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab active" data-tab="clasificacion">Clasificación</button>
+            <button class="tab" data-tab="jornada">Jornada Actual</button>
+            <button class="tab" data-tab="calendario">Calendario</button>
+        </nav>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Cargando datos...</p>
+        </div>
+
+        <div class="error" id="error" style="display: none;">
+            <p>Error al cargar los datos. Por favor, intenta de nuevo.</p>
+            <button onclick="loadCurrentTab()">Reintentar</button>
+        </div>
+
+        <!-- Clasificación -->
+        <section id="clasificacion" class="tab-content active">
+            <h2>Clasificación</h2>
+            <div class="table-responsive">
+                <table id="tabla-clasificacion">
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Equipo</th>
+                            <th>Pts</th>
+                            <th>PJ</th>
+                            <th>G</th>
+                            <th>E</th>
+                            <th>P</th>
+                            <th>GF</th>
+                            <th>GC</th>
+                            <th>Dif</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Datos cargados dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Jornada Actual -->
+        <section id="jornada" class="tab-content">
+            <h2>Jornada Actual</h2>
+            <div id="partidos-jornada">
+                <!-- Datos cargados dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Calendario -->
+        <section id="calendario" class="tab-content">
+            <h2>Calendario Completo</h2>
+            <div id="calendario-jornadas">
+                <!-- Datos cargados dinámicamente -->
+            </div>
+        </section>
+
+        <footer>
+            <p>Datos obtenidos de FFCV</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
