@@ -1,81 +1,314 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meliana CF - Aleví 2n Any</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b3d91">
+<title>Meliana CF · Equipos</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f3f5f9; --card:#fff; --text:#16202e; --muted:#6a7687; --line:#e3e8ef;
+  --brand:#0b3d91; --brand-ink:#fff; --me:#fff6d6; --me-line:#f1c40f;
+  --ok:#1a9b4b; --warn:#d98200; --bad:#d23b3b;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0d1117; --card:#161b22; --text:#e6edf3; --muted:#8b97a6; --line:#2a313c;
+    --brand:#1f4fae; --me:#3a3213; --me-line:#c9a40e;}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.4 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:var(--brand);color:var(--brand-ink);
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:10px}
+header .ttl{flex:1;min-width:0}
+header h1{margin:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header small{opacity:.85;display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button{font:inherit;cursor:pointer}
+.btn{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:18px;padding:7px 14px;font-size:13px}
+main{padding:12px 12px 0;max-width:720px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.msg{text-align:center;color:var(--muted);padding:32px 16px}
+.err{color:var(--bad)}
+.spin{display:inline-block;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:s .8s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav.tabs[hidden]{display:none}
+nav.tabs button{flex:1;background:none;border:0;padding:10px 4px 9px;color:var(--muted);font-size:12px}
+nav.tabs button b{display:block;font-size:20px;line-height:1.1}
+nav.tabs button.on{color:var(--brand);font-weight:600}
+@media (prefers-color-scheme: dark){nav.tabs button.on{color:#7aa7ff}}
+/* selector de equipo */
+.team{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px;margin-bottom:8px;color:var(--text)}
+.team img{width:36px;height:36px;object-fit:contain}
+.team b{display:block}.team span{color:var(--muted);font-size:13px}
+h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:16px 4px 8px}
+/* clasificación */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--muted);font-weight:600;text-align:center;padding:8px 3px;border-bottom:1px solid var(--line);font-size:12px}
+td{padding:8px 3px;text-align:center;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+td.pos{width:30px;border-left:4px solid transparent;font-weight:600}
+td.nm{text-align:left;width:100%;max-width:0}
+td.nm div{display:flex;align-items:center;gap:7px}
+td.nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.nm img{width:20px;height:20px;object-fit:contain;flex:none}
+td.pts{font-weight:700}
+tr.me{background:var(--me)}
+tr.me td.nm span{font-weight:700}
+.hide-s{display:none}
+@media (min-width:480px){.hide-s{display:table-cell}}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+/* partidos */
+.jsel{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.jsel button{width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:18px}
+.jsel button:disabled{opacity:.35}
+.jsel select{flex:1;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:0 12px;font:inherit;text-align:center}
+.csel{margin:0 0 12px;width:100%;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:0 10px;font:inherit}
+.m{padding:11px 14px;border-bottom:1px solid var(--line)}
+.m:last-child{border-bottom:0}
+.m.me{background:var(--me);box-shadow:inset 4px 0 0 var(--me-line)}
+.m .meta{color:var(--muted);font-size:12px;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.m .meta span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row{display:flex;align-items:center;gap:6px}
+.row .t{flex:1;display:flex;align-items:center;gap:7px;min-width:0}
+.row .t.v{justify-content:flex-end;text-align:right;flex-direction:row-reverse}
+.row .t img{width:22px;height:22px;object-fit:contain;flex:none}
+.row .t span{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.2;font-size:14px;word-break:break-word}
+.row .sc{flex:none;min-width:54px;text-align:center;font-weight:700;font-size:16px;background:var(--bg);border-radius:8px;padding:3px 8px}
+.row .sc.vs{font-weight:400;font-size:13px;color:var(--muted)}
+.tag{display:inline-block;font-size:11px;background:var(--warn);color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px}
+.jhd{padding:10px 14px;font-weight:600;border-bottom:1px solid var(--line);background:var(--bg);font-size:13px}
+.pill{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px}
+.G{background:var(--ok)}.E{background:var(--warn)}.P{background:var(--bad)}
+.mes{padding:12px 12px 14px}
+.mes h3{margin:0 0 8px;font-size:15px;text-transform:capitalize}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal .dw{font-size:11px;color:var(--muted);padding-bottom:2px}
+.cal .d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:13px;font-variant-numeric:tabular-nums}
+.cal button.d{border:0;background:var(--brand);color:#fff;font-weight:700;position:relative}
+.cal button.d.done{background:var(--ok)}
+.cal button.d.hoy{outline:2px solid var(--me-line);outline-offset:1px}
+.cal .d.hoy{outline:2px solid var(--me-line);outline-offset:-2px}
+.lg{display:flex;gap:14px;font-size:12px;color:var(--muted);margin:0 4px 10px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Meliana Club de Fútbol</h1>
-            <p class="subtitle">Segona FFCV Aleví 2n. any València - Lliga Regular Grup 2</p>
-        </header>
+<header>
+  <div class="ttl"><h1 id="h-title">Meliana C.F.</h1><small id="h-sub"></small></div>
+  <button class="btn" id="change" hidden>Cambiar equipo</button>
+</header>
+<main id="main"></main>
+<nav class="tabs" id="tabs" hidden>
+  <button data-tab="clas"><b>🏆</b>Clasificación</button>
+  <button data-tab="jor"><b>📋</b>Jornadas</button>
+  <button data-tab="prox"><b>📅</b>Calendario</button>
+</nav>
+<script>
+const $ = (s) => document.querySelector(s);
+const main = $('#main');
+const KEY = 'melianacf.equipo';
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-        <nav class="tabs">
-            <button class="tab active" data-tab="clasificacion">Clasificación</button>
-            <button class="tab" data-tab="jornada">Jornada Actual</button>
-            <button class="tab" data-tab="calendario">Calendario</button>
-        </nav>
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } },
+  set(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch {} },
+};
 
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Cargando datos...</p>
-        </div>
+async function api(path) {
+  const r = await fetch('/api/' + path);
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Error ' + r.status);
+  return r.json();
+}
+const loading = () => (main.innerHTML = '<div class="msg"><div class="spin"></div></div>');
+const failure = (e, retry) => {
+  main.innerHTML = `<div class="msg err">${esc(e.message)}<br><br><button class="btn" style="background:var(--brand)" id="retry">Reintentar</button></div>`;
+  $('#retry').onclick = retry;
+};
 
-        <div class="error" id="error" style="display: none;">
-            <p>Error al cargar los datos. Por favor, intenta de nuevo.</p>
-            <button onclick="loadCurrentTab()">Reintentar</button>
-        </div>
+let state = { equipo: null, comps: [], comp: null, tab: 'clas' };
 
-        <!-- Clasificación -->
-        <section id="clasificacion" class="tab-content active">
-            <h2>Clasificación</h2>
-            <div class="table-responsive">
-                <table id="tabla-clasificacion">
-                    <thead>
-                        <tr>
-                            <th>Pos</th>
-                            <th>Equipo</th>
-                            <th>Pts</th>
-                            <th>PJ</th>
-                            <th>G</th>
-                            <th>E</th>
-                            <th>P</th>
-                            <th>GF</th>
-                            <th>GC</th>
-                            <th>Dif</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Datos cargados dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+// ---------- selector de equipo ----------
+async function showPicker() {
+  $('#tabs').hidden = true; $('#change').hidden = true;
+  $('#h-title').textContent = 'Meliana C.F.'; $('#h-sub').textContent = 'Elige un equipo';
+  loading();
+  try {
+    const equipos = await api('equipos');
+    main.innerHTML = '<h2 class="sec">Equipos en competición</h2>' + equipos.map((e) =>
+      `<button class="team" data-id="${esc(e.id)}"><img src="${esc(e.escudo)}" alt=""><div><b>${esc(e.categoria)}</b><span>${esc(e.nombre)}</span></div></button>`).join('');
+    main.querySelectorAll('.team').forEach((b) => b.onclick = () => {
+      const e = equipos.find((x) => x.id === b.dataset.id);
+      store.set({ id: e.id, nombre: e.nombre, categoria: e.categoria, grupo: null });
+      start();
+    });
+  } catch (e) { failure(e, showPicker); }
+}
 
-        <!-- Jornada Actual -->
-        <section id="jornada" class="tab-content">
-            <h2>Jornada Actual</h2>
-            <div id="partidos-jornada">
-                <!-- Datos cargados dinámicamente -->
-            </div>
-        </section>
+// ---------- arranque con equipo guardado ----------
+async function start() {
+  const saved = store.get();
+  if (!saved) return showPicker();
+  state.equipo = saved;
+  $('#change').hidden = false; $('#tabs').hidden = false;
+  $('#h-title').textContent = saved.categoria; $('#h-sub').textContent = saved.nombre;
+  loading();
+  try {
+    state.comps = await api('competiciones?equipo=' + saved.id);
+    if (!state.comps.length) { main.innerHTML = '<div class="msg">Este equipo no tiene competición esta temporada.</div>'; return; }
+    state.comp = state.comps.find((c) => c.codGrupo === saved.grupo) || state.comps[0];
+    render();
+  } catch (e) { failure(e, start); }
+}
 
-        <!-- Calendario -->
-        <section id="calendario" class="tab-content">
-            <h2>Calendario Completo</h2>
-            <div id="calendario-jornadas">
-                <!-- Datos cargados dinámicamente -->
-            </div>
-        </section>
+function setSub() {
+  const c = state.comp;
+  $('#h-sub').textContent = `${state.equipo.nombre} · ${c.competicion} · ${c.grupo}`;
+}
 
-        <footer>
-            <p>Datos obtenidos de FFCV</p>
-        </footer>
-    </div>
+function compSelector() {
+  if (state.comps.length < 2) return '';
+  return `<select class="csel" id="csel">${state.comps.map((c) =>
+    `<option value="${esc(c.codGrupo)}" ${c === state.comp ? 'selected' : ''}>${esc(c.competicion)} · ${esc(c.grupo)}</option>`).join('')}</select>`;
+}
+function bindCompSelector() {
+  const s = $('#csel'); if (!s) return;
+  s.onchange = () => {
+    state.comp = state.comps.find((c) => c.codGrupo === s.value);
+    store.set({ ...state.equipo, grupo: state.comp.codGrupo });
+    render();
+  };
+}
 
-    <script src="app.js"></script>
+function render() {
+  setSub();
+  document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === state.tab));
+  ({ clas: viewClasificacion, jor: viewJornadas, prox: viewCalendario })[state.tab]();
+}
+
+// ---------- clasificación ----------
+async function viewClasificacion() {
+  loading();
+  const myTab = state.tab;
+  try {
+    const d = await api('clasificacion?grupo=' + state.comp.codGrupo);
+    if (myTab !== state.tab) return;
+    const promo = d.promociones || [];
+    const rows = d.equipos.map((t) => {
+      const diff = t.gf - t.gc;
+      return `<tr class="${t.codEquipo === state.equipo.id ? 'me' : ''}">
+        <td class="pos" style="border-left-color:${esc(t.color || 'transparent')}">${t.posicion}</td>
+        <td class="nm"><div><img src="${esc(t.escudo)}" alt="" loading="lazy"><span>${esc(t.nombre)}</span></div></td>
+        <td class="pts">${t.puntos}</td><td>${t.pj}</td><td>${t.pg}</td><td>${t.pe}</td><td>${t.pp}</td>
+        <td class="hide-s">${t.gf}</td><td class="hide-s">${t.gc}</td><td>${diff > 0 ? '+' : ''}${diff}</td></tr>`;
+    }).join('');
+    const legend = promo.length ? `<div class="legend">${promo.map((p) => `<span><i style="background:${esc(p.color)}"></i>${esc(p.nombre)}</span>`).join('')}</div>` : '';
+    main.innerHTML = compSelector() + `<div class="card"><table>
+      <thead><tr><th>#</th><th style="text-align:left">Equipo</th><th>Pts</th><th>PJ</th><th>G</th><th>E</th><th>P</th>
+      <th class="hide-s">GF</th><th class="hide-s">GC</th><th>DG</th></tr></thead><tbody>${rows}</tbody></table>${legend}</div>`;
+    bindCompSelector();
+  } catch (e) { failure(e, viewClasificacion); }
+}
+
+// ---------- partidos ----------
+function partidoHtml(p, extra = '') {
+  const me = state.equipo.id;
+  const isMe = p.codLocal === me || p.codVisitante === me;
+  const sc = p.jugado ? `<div class="sc">${esc(p.resultado.replace('-', ' - '))}</div>` : `<div class="sc vs">${esc(p.hora || 'vs')}</div>`;
+  return `<div class="m ${isMe ? 'me' : ''}">
+    <div class="meta"><span>${esc(p.fecha)}${p.jugado ? '' : ' · ' + esc(p.hora)}${extra}${p.motivo && !p.jugado ? `<span class="tag">${esc(p.motivo)}</span>` : ''}</span><span>${esc(p.campo)}</span></div>
+    <div class="row">
+      <div class="t"><img src="${esc(p.escudoLocal)}" alt="" loading="lazy"><span>${esc(p.local)}</span></div>${sc}
+      <div class="t v"><img src="${esc(p.escudoVisitante)}" alt="" loading="lazy"><span>${esc(p.visitante)}</span></div>
+    </div></div>`;
+}
+
+function jornadaActual(js) {
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  let idx = 0;
+  js.forEach((j, i) => {
+    const [d, m, y] = j.fecha.split('-').map(Number);
+    if (d && new Date(y, m - 1, d) <= hoy) idx = i;
+  });
+  return idx;
+}
+
+async function viewJornadas() {
+  loading();
+  const myTab = state.tab;
+  try {
+    const js = await api('jornadas?grupo=' + state.comp.codGrupo);
+    if (myTab !== state.tab) return;
+    if (!js.length) { main.innerHTML = compSelector() + '<div class="msg">Sin jornadas.</div>'; bindCompSelector(); return; }
+    const key = 'j:' + state.comp.codGrupo;
+    let i = state[key] ?? jornadaActual(js);
+    if (state.goJornada) { const k = js.findIndex((j) => j.nombre === state.goJornada || j.cod === state.goJornada); if (k >= 0) i = k; state.goJornada = null; }
+    main.innerHTML = compSelector() + `<div class="jsel"><button id="prev" aria-label="Anterior">‹</button>
+      <select id="jsel">${js.map((j, n) => `<option value="${n}">Jornada ${esc(j.nombre)} · ${esc(j.fecha.slice(0, 5).replace('-', '/'))}</option>`).join('')}</select>
+      <button id="next" aria-label="Siguiente">›</button></div><div id="jbody"></div>`;
+    bindCompSelector();
+    const load = async () => {
+      state[key] = i; $('#jsel').value = i;
+      $('#prev').disabled = i === 0; $('#next').disabled = i === js.length - 1;
+      $('#jbody').innerHTML = '<div class="msg"><div class="spin"></div></div>';
+      try {
+        const ps = await api(`jornada?competicion=${state.comp.codCompeticion}&grupo=${state.comp.codGrupo}&jornada=${js[i].cod}`);
+        if (state[key] !== i || state.tab !== 'jor') return;
+        $('#jbody').innerHTML = ps.length ? `<div class="card">${ps.map((p) => partidoHtml(p)).join('')}</div>` : '<div class="msg">Sin partidos.</div>';
+      } catch (e) { $('#jbody').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+    };
+    $('#prev').onclick = () => { i--; load(); };
+    $('#next').onclick = () => { i++; load(); };
+    $('#jsel').onchange = (ev) => { i = +ev.target.value; load(); };
+    load();
+  } catch (e) { failure(e, viewJornadas); }
+}
+
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+async function viewCalendario() {
+  loading();
+  const myTab = state.tab;
+  try {
+    const ps = await api(`calendario?equipo=${state.equipo.id}&grupo=${state.comp.codGrupo}`);
+    if (myTab !== state.tab) return;
+    if (!ps.length) { main.innerHTML = compSelector() + '<div class="msg">Sin partidos.</div>'; bindCompSelector(); return; }
+    const porDia = {};
+    ps.forEach((p) => { if (p.fechaIso) (porDia[p.fechaIso] ||= []).push(p); });
+    const meses = [...new Set(Object.keys(porDia).map((d) => d.slice(0, 7)))].sort();
+    const t = new Date(); const hoy = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    const html = meses.map((ym) => {
+      const [y, m] = ym.split('-').map(Number);
+      const offset = (new Date(y, m - 1, 1).getDay() + 6) % 7; // lunes primero
+      const dias = new Date(y, m, 0).getDate();
+      let cells = ['L','M','X','J','V','S','D'].map((d) => `<div class="dw">${d}</div>`).join('') + '<div></div>'.repeat(offset);
+      for (let d = 1; d <= dias; d++) {
+        const iso = `${ym}-${String(d).padStart(2, '0')}`;
+        const m_ = porDia[iso];
+        const cls = 'd' + (m_ && m_.every((x) => x.jugado) ? ' done' : '') + (iso === hoy ? ' hoy' : '');
+        cells += m_
+          ? `<button class="${cls}" data-j="${esc(m_[0].jornada)}" aria-label="Jornada ${esc(m_[0].jornada)}, ${d} de ${MESES[m - 1]}">${d}</button>`
+          : `<div class="${cls}">${d}</div>`;
+      }
+      return `<div class="card mes"><h3>${MESES[m - 1]} ${y}</h3><div class="cal">${cells}</div></div>`;
+    }).join('');
+    main.innerHTML = compSelector() + '<div class="lg"><span><i style="background:var(--brand)"></i>Por jugar</span><span><i style="background:var(--ok)"></i>Jugado</span></div>' + html;
+    bindCompSelector();
+    main.querySelectorAll('button.d').forEach((b) => b.onclick = () => {
+      state.goJornada = b.dataset.j; state.tab = 'jor'; render(); window.scrollTo(0, 0);
+    });
+    const h = main.querySelector('.d.hoy, button.d.hoy'); if (h) h.scrollIntoView({ block: 'center' });
+  } catch (e) { failure(e, viewCalendario); }
+}
+
+// ---------- eventos ----------
+document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; render(); window.scrollTo(0, 0); });
+$('#change').onclick = showPicker;
+start();
+</script>
 </body>
 </html>

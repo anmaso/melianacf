@@ -1,19 +1,9 @@
 {
-  "name": "meliana-cf-app",
+  "name": "ffcv-equipos-meliana",
   "version": "1.0.0",
-  "description": "Aplicación web para ver datos del Meliana Club de Fútbol",
+  "description": "Clasificación, resultados y próximos partidos de los equipos del Meliana C.F. (datos FFCV)",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
-  },
-  "keywords": ["futbol", "meliana", "ffcv"],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.18.2",
-    "axios": "^1.6.0",
-    "cheerio": "^1.0.0-rc.12",
-    "cors": "^2.8.5"
-  }
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=20" },
+  "license": "ISC"
 }
