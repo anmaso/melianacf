@@ -63,6 +63,16 @@ tr.me td.nm span{font-weight:700}
 @media (min-width:480px){.hide-s{display:table-cell}}
 .legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+/* plantilla */
+.plist{list-style:none;margin:0;padding:0}
+.plist li{padding:8px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.plist .av{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--bg);flex:none;display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:600;font-size:14px}
+.plist .nm{flex:1;min-width:0}
+.plist .nm small{display:block;color:var(--muted);font-size:12px}
+.plist .dor{flex:none;min-width:34px;text-align:center;font-weight:700;font-size:16px;color:var(--brand);font-variant-numeric:tabular-nums}
+@media (prefers-color-scheme: dark){.plist .dor{color:#7aa7ff}}
+.plist li:last-child{border-bottom:0}
+.btn.on{background:#fff;color:var(--brand)}
 /* partidos */
 .jsel{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .jsel button{width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:18px}
@@ -71,6 +81,8 @@ tr.me td.nm span{font-weight:700}
 .csel{margin:0 0 12px;width:100%;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:0 10px;font:inherit}
 .m{padding:11px 14px;border-bottom:1px solid var(--line)}
 .m:last-child{border-bottom:0}
+.m[data-campo]{cursor:pointer}
+.m[data-campo]:active{filter:brightness(.96)}
 .m.me{background:var(--me);box-shadow:inset 4px 0 0 var(--me-line)}
 .m .meta{color:var(--muted);font-size:12px;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
 .m .meta span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -101,6 +113,7 @@ tr.me td.nm span{font-weight:700}
 <body>
 <header>
   <div class="ttl"><h1 id="h-title">Meliana C.F.</h1><small id="h-sub"></small></div>
+  <button class="btn" id="players" hidden>Jugadores</button>
   <button class="btn" id="change" hidden>Cambiar equipo</button>
 </header>
 <main id="main"></main>
@@ -135,7 +148,7 @@ let state = { equipo: null, comps: [], comp: null, tab: 'clas' };
 
 // ---------- selector de equipo ----------
 async function showPicker() {
-  $('#tabs').hidden = true; $('#change').hidden = true;
+  $('#tabs').hidden = true; $('#change').hidden = true; $('#players').hidden = true;
   $('#h-title').textContent = 'Meliana C.F.'; $('#h-sub').textContent = 'Elige un equipo';
   loading();
   try {
@@ -155,7 +168,7 @@ async function start() {
   const saved = store.get();
   if (!saved) return showPicker();
   state.equipo = saved;
-  $('#change').hidden = false; $('#tabs').hidden = false;
+  $('#change').hidden = false; $('#players').hidden = false; $('#tabs').hidden = false;
   $('#h-title').textContent = saved.categoria; $('#h-sub').textContent = saved.nombre;
   loading();
   try {
@@ -188,7 +201,8 @@ function bindCompSelector() {
 function render() {
   setSub();
   document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === state.tab));
-  ({ clas: viewClasificacion, jor: viewJornadas, prox: viewCalendario })[state.tab]();
+  $('#players').classList.toggle('on', state.tab === 'plan');
+  ({ clas: viewClasificacion, jor: viewJornadas, prox: viewCalendario, plan: viewPlantilla })[state.tab]();
 }
 
 // ---------- clasificación ----------
@@ -215,12 +229,38 @@ async function viewClasificacion() {
   } catch (e) { failure(e, viewClasificacion); }
 }
 
+// ---------- plantilla ----------
+// "APELLIDOS, NOMBRE" -> "Nombre Apellidos"
+const titleCase = (s) => s.toLowerCase().replace(/(^|[\s'-])\p{L}/gu, (c) => c.toUpperCase());
+function nombrePersona(n) {
+  const [ap, no] = n.split(',').map((x) => x.trim());
+  return titleCase(no ? `${no} ${ap}` : ap);
+}
+const iniciales = (n) => n.split(/[\s,]+/).filter(Boolean).slice(0, 2).map((x) => x[0]).join('');
+async function viewPlantilla() {
+  loading();
+  try {
+    const d = await api('plantilla?equipo=' + state.equipo.id);
+    if (state.tab !== 'plan') return;
+    const fila = (x) => {
+      const av = x.foto
+        ? `<img class="av" src="/api/foto?equipo=${state.equipo.id}&jugador=${esc(x.cod)}" alt="" loading="lazy">`
+        : `<span class="av">${esc(iniciales(nombrePersona(x.nombre)))}</span>`;
+      const pos = x.posicion ? `<small>${esc(x.posicion)}</small>` : '';
+      return `<li>${av}<div class="nm">${esc(nombrePersona(x.nombre))}${pos}</div>${x.dorsal ? `<span class="dor">${esc(x.dorsal)}</span>` : ''}</li>`;
+    };
+    const lista = (t, a) => a.length ? `<h2 class="sec">${t} (${a.length})</h2><div class="card"><ul class="plist">${a.map(fila).join('')}</ul></div>` : '';
+    main.innerHTML = lista('Jugadores', d.jugadores) + lista('Cuerpo técnico', d.tecnicos) + lista('Delegados', d.delegados)
+      || '<div class="msg">Sin datos de plantilla.</div>';
+  } catch (e) { failure(e, viewPlantilla); }
+}
+
 // ---------- partidos ----------
 function partidoHtml(p, extra = '') {
   const me = state.equipo.id;
   const isMe = p.codLocal === me || p.codVisitante === me;
   const sc = p.jugado ? `<div class="sc">${esc(p.resultado.replace('-', ' - '))}</div>` : `<div class="sc vs">${esc(p.hora || 'vs')}</div>`;
-  return `<div class="m ${isMe ? 'me' : ''}">
+  return `<div class="m ${isMe ? 'me' : ''}"${p.campo ? ` data-campo="${esc(p.campo)}" role="link" tabindex="0" title="Ver campo en Google Maps"` : ''}>
     <div class="meta"><span>${esc(p.fecha)}${p.jugado ? '' : ' · ' + esc(p.hora)}${extra}${p.motivo && !p.jugado ? `<span class="tag">${esc(p.motivo)}</span>` : ''}</span><span>${esc(p.campo)}</span></div>
     <div class="row">
       <div class="t"><img src="${esc(p.escudoLocal)}" alt="" loading="lazy"><span>${esc(p.local)}</span></div>${sc}
@@ -306,7 +346,16 @@ async function viewCalendario() {
 }
 
 // ---------- eventos ----------
+// Pulsar un partido abre su campo en Google Maps
+const abrirCampo = (el) => window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(el.dataset.campo), '_blank', 'noopener');
+main.addEventListener('click', (e) => { const m = e.target.closest('.m[data-campo]'); if (m) abrirCampo(m); });
+main.addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const m = e.target.closest('.m[data-campo]'); if (m) abrirCampo(m); });
 document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => { state.tab = b.dataset.tab; render(); window.scrollTo(0, 0); });
+$('#players').onclick = () => {
+  if (state.tab === 'plan') state.tab = state.prevTab || 'clas';
+  else { state.prevTab = state.tab; state.tab = 'plan'; }
+  render(); window.scrollTo(0, 0);
+};
 $('#change').onclick = showPicker;
 start();
 </script>

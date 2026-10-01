@@ -179,6 +179,43 @@ async function getCalendario(codEquipo, codGrupo) {
   return porJornada.flat().sort((a, b) => (a.fechaIso + a.hora).localeCompare(b.fechaIso + b.hora));
 }
 
+// Fotos de la plantilla (llegan en base64 desde la FFCV) servidas como imagen: cod -> Buffer
+const fotos = new Map();
+const MIN_FOTO = 4000; // las fotos "vacías" son diminutas; por debajo de estos bytes se ignoran
+
+function guardarFoto(cod, dataUri) {
+  const m = /^data:image\/(?:png|jpe?g|gif|webp);base64,(.+)$/.exec(dataUri || '');
+  if (!m || !cod) return false;
+  const buf = Buffer.from(m[1], 'base64');
+  if (buf.length < MIN_FOTO) return false;
+  fotos.set(cod, buf);
+  return true;
+}
+
+// Plantilla de un equipo: jugadores (dorsal, posición, foto), técnicos y delegados.
+// No se expone el email que devuelve la FFCV.
+async function getPlantilla(codEquipo) {
+  return cached(`plan:${codEquipo}`, 30 * MIN, async () => {
+    const d = await ffcv('equipos/plantilla_home.php', { cod_equipo: codEquipo });
+    const persona = (x) => {
+      const cod = str(x.codjugador || x.codentrenador || x.coddelegado);
+      return {
+        cod,
+        nombre: str(x.nombre).replace(/\s+,/, ','),
+        dorsal: str(x.dorsal),
+        posicion: str(x.posicion),
+        foto: guardarFoto(cod, x.foto),
+      };
+    };
+    const lista = (a) => (a || []).map(persona).filter((x) => x.nombre);
+    return {
+      jugadores: lista(d.jugadores_equipo).sort((a, b) => (+a.dorsal || 999) - (+b.dorsal || 999) || a.nombre.localeCompare(b.nombre)),
+      tecnicos: lista(d.tecnicos_equipo).concat(lista(d.otros_tecnicos_equipo)),
+      delegados: lista(d.delegados_equipo),
+    };
+  });
+}
+
 // ---- HTTP -------------------------------------------------------------------
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -228,6 +265,22 @@ async function handleApi(url, res) {
       const j = digits(q.get('jornada'));
       if (!c || !g || !j) return sendJson(res, 400, { error: 'parámetros inválidos' });
       return sendJson(res, 200, await getPartidosJornada(c, g, j));
+    }
+    if (route === '/api/plantilla') {
+      const e = digits(q.get('equipo'));
+      if (!e) return sendJson(res, 400, { error: 'equipo inválido' });
+      return sendJson(res, 200, await getPlantilla(e));
+    }
+    if (route === '/api/foto') {
+      const e = digits(q.get('equipo'));
+      const j = digits(q.get('jugador'));
+      if (!e || !j) return sendJson(res, 400, { error: 'parámetros inválidos' });
+      if (!fotos.has(j)) await getPlantilla(e);
+      const buf = fotos.get(j);
+      if (!buf) return sendJson(res, 404, { error: 'Sin foto' });
+      const tipo = buf[0] === 0x89 ? 'image/png' : 'image/jpeg';
+      res.writeHead(200, { 'Content-Type': tipo, 'Cache-Control': 'public, max-age=3600' });
+      return res.end(buf);
     }
     if (route === '/api/calendario') {
       const e = digits(q.get('equipo'));
