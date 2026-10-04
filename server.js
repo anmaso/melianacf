@@ -16,25 +16,60 @@ const HEADERS = {
 
 // ---- Caché en memoria con TTL ------------------------------------------
 const cache = new Map();
+const inflight = new Map();
 async function cached(key, ttlMs, loader) {
   const hit = cache.get(key);
   if (hit && hit.exp > Date.now()) return hit.value;
-  const value = await loader();
-  cache.set(key, { value, exp: Date.now() + ttlMs });
-  return value;
+  if (inflight.has(key)) return inflight.get(key);
+  const p = (async () => {
+    try {
+      const value = await loader();
+      cache.set(key, { value, exp: Date.now() + ttlMs });
+      return value;
+    } catch (err) {
+      // Si FFCV falla, servimos el último valor bueno aunque haya caducado
+      if (hit) {
+        console.warn(`${key}: sirviendo caché caducada (${err.message})`);
+        hit.exp = Date.now() + 30 * 1000; // no reintentar en cada petición
+        return hit.value;
+      }
+      throw err;
+    } finally {
+      inflight.delete(key);
+    }
+  })();
+  inflight.set(key, p);
+  return p;
 }
 const MIN = 60 * 1000;
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const RETRIES = 3;
+
 async function ffcv(p, params) {
   const url = `${BASE}/${p}?${new URLSearchParams(params)}`;
-  const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(15000) });
-  if (!res.ok) throw new Error(`FFCV ${res.status} en ${p}`);
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`Respuesta no válida de FFCV en ${p}`);
+  let lastErr;
+  for (let i = 0; i < RETRIES; i++) {
+    if (i) await sleep(300 * 2 ** (i - 1) + Math.random() * 200);
+    try {
+      const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(8000) });
+      if (res.status >= 500) {
+        lastErr = new Error(`FFCV ${res.status} en ${p}`);
+        continue; // error transitorio: reintentar
+      }
+      if (!res.ok) throw Object.assign(new Error(`FFCV ${res.status} en ${p}`), { fatal: true });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw Object.assign(new Error(`Respuesta no válida de FFCV en ${p}`), { fatal: true });
+      }
+    } catch (err) {
+      if (err.fatal) throw err;
+      lastErr = err; // timeout / error de red: reintentar
+    }
   }
+  throw lastErr;
 }
 
 const str = (v) => (v == null ? '' : String(v).trim());
