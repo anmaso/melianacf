@@ -12,6 +12,10 @@ const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
   Accept: 'application/json, */*',
   Referer: 'https://ffcv.es/competiciones/',
+  // La FFCV rechaza (403 INVALID_PAGE_TOKEN) las peticiones sin cabeceras de navegador
+  'Sec-Fetch-Site': 'same-origin',
+  'Sec-Fetch-Mode': 'cors',
+  'Sec-Fetch-Dest': 'empty',
 };
 
 // ---- Caché en memoria con TTL ------------------------------------------
